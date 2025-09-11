@@ -1,16 +1,19 @@
 Package: metacrawlr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Extract and export dataset metadata from various data publication systems.
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Marius", "Bottin",
+      email = "mbottin@humboldt.org.co",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Metacrawlr allows to extract dataset metadata coming from variable list in xml format, or in database.
+    For now, we considered the cases of IPT, Geonetwork and Dataverse publication systems.
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
+RoxygenNote: 7.3.3
+Imports: 
+    stringi

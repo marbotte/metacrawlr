@@ -1,0 +1,28 @@
+---
+title: "metacrawlr"
+format: 
+  gfm:
+    df_print: kable
+---
+
+
+
+```r
+if(!require(devtools)){install.packages("devtools")}
+devtools::install_github("marbotte/metacrawlr")
+```
+
+
+```{r}
+library(metacrawlr)
+```
+
+
+## Metadata extraction from the datadir of an IPT instance
+
+Here, as an example, I downloaded the datadir of an IPT instance on my computer:
+
+```{r}
+DATADIR<-"/home/marius_gt/Travail/Data/IPTs/permisos-3.1.5/resources/"
+```
+
