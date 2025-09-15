@@ -63,6 +63,14 @@ nextLevelNames <- function(metaList,numpath)
   names(navMetaList(metaList,numpath))
 }
 
+#' Add elements to a list, using mapply
+#'
+#' @param l list
+#' @param toAdd elements to add the the elements of l (need to be a list of the same size than l)
+#'
+#' @returns the list with added elements
+#' @export
+#'
 appendRepListVectorElements<-function(l,toAdd)
 {
   stopifnot(length(l)==length(toAdd))
@@ -70,11 +78,28 @@ appendRepListVectorElements<-function(l,toAdd)
   return(mapply(append,rep(l,n),unlist(toAdd),SIMPLIFY=F))
 }
 
+#' Gives the path corresponding to the next level of the list (from a defined path)
+#'
+#' @param path path
+#' @param l list
+#'
+#' @returns list of path of levels n+1
+#' @export
+#'
 childrenPath <- function(path,l)
 {
   appendRepListVectorElements(path,lapply(l,function(x)1:x))
 }
 
+#' Gives the repeated list depending on number of elements
+#'
+#' TODO: tests of the function, it is difficult to describe the effects of the funcion by only reading the code
+#'
+#' @param x TODO: document
+#'
+#' @returns TODO: document
+#' @export
+#'
 numRep<-function(x)
 {
   x<-factor(x)
@@ -86,6 +111,14 @@ numRep<-function(x)
   return(res)
 }
 
+#' Analyse the structure of a nested list resulting from the transformation of an xml structure
+#'
+#' @param listDocument list of xml documents, transformed as a nested list
+#' @param goFurther for which kind of variables should we go further in the nested levels (by default lists and xml attributes flags)
+#'
+#' @returns an object describing the structure of a nested list
+#' @export
+#'
 extractStructureListDocuments<-function(listDocument,goFurther=c("list","XMLAttributes"))
 {
   #initialization
@@ -158,6 +191,16 @@ extractStructureListDocuments<-function(listDocument,goFurther=c("list","XMLAttr
   return(list(levs=unique(levStruct),levStruct=levStruct,paths=listPath,listNames=listNames,parents=parents,directChildren=directChildren,classes=classes,val=val,null_val=null_val,num_rep=num_rep))
 }
 
+#' Find names for variables, given a list of word describing the words which describe the variable in a nested structure
+#'
+#' @param lW list of words
+#' @param gp groups of variables in which to have unique names
+#' @param max_nbW maximum number of words to use to get the names of the variables
+#' @param reservedNames names which are invalid due to use in some languages
+#'
+#' @returns final names of the variables
+#' @export
+#'
 listWord2finalNames<-function(lW,gp,max_nbW=max(sapply(lW,length)),reservedNames=c("string","name","int","text","class","para"))
 {
   gp<-factor(gp)
@@ -185,6 +228,17 @@ listWord2finalNames<-function(lW,gp,max_nbW=max(sapply(lW,length)),reservedNames
   return(finalNames)
 }
 
+#' Gives children of particular elements on a nested list
+#'
+#' TODO: make test for the real functioning of the function
+#'
+#' @param id ids of the elements for which we search the children
+#' @param dChildren object describing children
+#' @param includeSelf should the result include the id in the children
+#'
+#' @returns all children
+#' @export
+#'
 allChildren<-function(id,dChildren,includeSelf=F)
 {
   res<-newChildren<-if (includeSelf) id else dChildren[[id]]
@@ -196,6 +250,16 @@ allChildren<-function(id,dChildren,includeSelf=F)
   return(res)
 }
 
+#' Analyses the structure and contents of a nested list in terms of variables and groups of variables
+#'
+#' @param extract_struct structure extracted from a nested list (from function extractStructureListDocument)
+#' @param uniqueGpNames names of the groups
+#' @param gp0 names of the root
+#' @param simplify_var_id TODO: document
+#'
+#' @returns extracted variables and groups from a nested list
+#' @export
+#'
 groupsAndVariables<-function(extract_struct,uniqueGpNames=T,gp0="xml_doc",simplify_var_id=T)
 {
   #Definition vars and gps
@@ -240,13 +304,13 @@ groupsAndVariables<-function(extract_struct,uniqueGpNames=T,gp0="xml_doc",simpli
   idGpParentsVar<-vector(mode="list",length(extract_struct$val))
   ##Gp0
   allChildrenDoc<-lapply(which(extract_struct$levStruct==0),allChildren,dChildren=extract_struct$directChildren)
-  mG<-lapply(lapply(allChildrenDoc,match,table=which(!is.na(gps))),na.omit)
+  mG<-lapply(lapply(allChildrenDoc,match,table=which(!is.na(gps))),stats::na.omit)
   for(i in 1:length(mG)){
     elementsToAdd<-i
     names(elementsToAdd)<-gp0
     idGpParentsGp[mG[[i]]]<-lapply(idGpParentsGp[mG[[i]]],append,elementsToAdd)
   }
-  mV<-lapply(lapply(allChildrenDoc,match,table=extract_struct$val),na.omit)
+  mV<-lapply(lapply(allChildrenDoc,match,table=extract_struct$val),stats::na.omit)
   for(i in 1:length(mV)){
     elementsToAdd<-i
     names(elementsToAdd)<-gp0
@@ -255,13 +319,13 @@ groupsAndVariables<-function(extract_struct,uniqueGpNames=T,gp0="xml_doc",simpli
   ##other groups
   all_children<-lapply(1:length(extract_struct$paths),allChildren,extract_struct$directChildren,includeSelf=T)
   cbind(which(!is.na(gps))[sapply(all_children[which(!is.na(gps))],length)==1],all_children[!is.na(gps)][sapply(all_children[!is.na(gps)],length)==1])
-  gpInGpId<-na.omit(data.frame(parentId=rep(which(!is.na(gps)),sapply(all_children[!is.na(gps)],length)),
+  gpInGpId<-stats::na.omit(data.frame(parentId=rep(which(!is.na(gps)),sapply(all_children[!is.na(gps)],length)),
                                gp=rep(gps[!is.na(gps)],sapply(all_children[!is.na(gps)],length)),
                                gpName=rep(finalGpNames[gps[!is.na(gps)]],sapply(all_children[!is.na(gps)],length)),
                                num=rep(num_rep_final[!is.na(gps)],sapply(all_children[!is.na(gps)],length)),
                                childGp=match(unlist(all_children[!is.na(gps)]),which(!is.na(gps)))
   ))
-  valInGpId<-na.omit(data.frame(parentId=rep(which(!is.na(gps)),sapply(all_children[!is.na(gps)],length)),
+  valInGpId<-stats::na.omit(data.frame(parentId=rep(which(!is.na(gps)),sapply(all_children[!is.na(gps)],length)),
                                 gp=rep(gps[!is.na(gps)],sapply(all_children[!is.na(gps)],length)),
                                 gpName=rep(finalGpNames[gps[!is.na(gps)]],sapply(all_children[!is.na(gps)],length)),
                                 num=rep(num_rep_final[!is.na(gps)],sapply(all_children[!is.na(gps)],length)),
@@ -333,8 +397,16 @@ groupsAndVariables<-function(extract_struct,uniqueGpNames=T,gp0="xml_doc",simpli
   return(res)
 }
 
-require(data.tree)
-require(igraph)
+#require(data.tree)
+#require(igraph)
+#' Plot the hierarchy of variables from an analysed objects (nested list extracted from an xml structure)
+#'
+#' @param gpsAndVar groups and variables resulting from the groupsAndVariable function
+#' @param ... additional arguments to pass to the plot.igraph function
+#'
+#' @returns result of plot.igraph
+#' @export
+#'
 plotGroupsAndVariables<-function(gpsAndVar,...)
 {
   dfPath<-rbind(
@@ -345,31 +417,42 @@ plotGroupsAndVariables<-function(gpsAndVar,...)
                un_names=paste0("var_",1:length(gpsAndVar$varHier_un)), inGp=gpsAndVar$varInGp,
                gpCol=gpsAndVar$varInGp)
   )
-  if(any(dfPath$label%in%NODE_RESERVED_NAMES_CONST))
+  if(any(dfPath$label %in% data.tree::NODE_RESERVED_NAMES_CONST))
   {
-    dfPath$label[dfPath$label%in%NODE_RESERVED_NAMES_CONST]<-paste0(
-      dfPath$label[dfPath$label%in%NODE_RESERVED_NAMES_CONST],"_")
+    dfPath$label[dfPath$label %in% data.tree::NODE_RESERVED_NAMES_CONST]<-paste0(
+      dfPath$label[dfPath$label %in% data.tree::NODE_RESERVED_NAMES_CONST],"_")
   }
-  net<-as.igraph(as.Node(dfPath,"pathString","label","gpVar"))
-  m<-match(names(V(net)),dfPath$un_names)
-  V(net)$label<-NA
-  V(net)$label[1]<-gpsAndVar$gp0
-  V(net)$label[!is.na(m)]<-dfPath$label[na.omit(m)]
-  V(net)$gpCol<-NA
-  V(net)$gpCol[1]<-0
-  V(net)$gpCol[!is.na(m)]<-dfPath$gpCol[na.omit(m)]
-  V(net)$gpVar<-NA
-  V(net)$gpVar[1]<-"gp"
-  V(net)$gpVar[!is.na(m)]<-dfPath$gpVar[na.omit(m)]
+  net<-igraph::as.igraph(data.tree::as.Node(dfPath,"pathString","label","gpVar"))
+  m<-match(names(igraph::V(net)),dfPath$un_names)
+  igraph::V(net)$label<-NA
+  igraph::V(net)$label[1]<-gpsAndVar$gp0
+  igraph::V(net)$label[!is.na(m)]<-dfPath$label[stats::na.omit(m)]
+  igraph::V(net)$gpCol<-NA
+  igraph::V(net)$gpCol[1]<-0
+  igraph::V(net)$gpCol[!is.na(m)]<-dfPath$gpCol[stats::na.omit(m)]
+  igraph::V(net)$gpVar<-NA
+  igraph::V(net)$gpVar[1]<-"gp"
+  igraph::V(net)$gpVar[!is.na(m)]<-dfPath$gpVar[stats::na.omit(m)]
 
-  plot(net,vertex.label=V(net)$label,vertex.size=5,
-       vertex.shape=c(var="circle",gp="square")[V(net)$gpVar],
-       vertex.color=rainbow(max(V(net)$gpCol+1))[V(net)$gpCol+1],
+  plot(net,vertex.label=igraph::V(net)$label,vertex.size=5,
+       vertex.shape=c(var="circle",gp="square")[igraph::V(net)$gpVar],
+       vertex.color=grDevices::rainbow(max(igraph::V(net)$gpCol+1))[igraph::V(net)$gpCol+1],
        ...)
 }
 #dat<-xml_list_gn
 #struct<-structGn
 #gpsAndVar<-gnv_gn
+#' Extract tables of variables from an analysed nested list (from a list of xml documents)
+#'
+#' @param dat nested list (transformation of a list of xml document)
+#' @param struct analyses of the structure of dat (result of extractStructureListDocument)
+#' @param gpsAndVar analyses of variables and groups (result of groupsAndVariables)
+#' @param convertMode TODO:document
+#' @param noConvert TODO: document
+#'
+#' @returns list of extracted tables
+#' @export
+#'
 extractTables<-function(dat,struct,gpsAndVar,convertMode=T,noConvert=c("emlVersion","replacedEmlVersion","version"))
 {
 valVar<-lapply(gpsAndVar$varId,
@@ -379,7 +462,7 @@ valVar<-lapply(gpsAndVar$varId,
                ,d=dat,s=struct$paths)
 if(convertMode){
   nC<-names(valVar)%in%noConvert
-  valVar[!nC]<-type.convert(valVar[!nC],as.is=T)
+  valVar[!nC]<-utils::type.convert(valVar[!nC],as.is=T)
 
   }
 res<-list(data=NULL,info=NULL)
@@ -434,256 +517,3 @@ res$info$var<-data.frame(
 
 return(res)
 }
-
-require(RSQLite)
-
-createTableFK_statement<-function(conn,tabName,fields,types,pk,foreignTable,foreignRef,listConstraint=list(),schema=NULL)
-{
-  foreignExpression<-rep(NA,length(fields))
-  okForeign<-(!is.na(foreignTable)&!is.na(foreignRef))
-  if(any(okForeign)){
-  foreignExpression[okForeign]<-paste0("REFERENCES ", dbQuoteIdentifier(conn,Id(schema=schema,table=foreignTable[okForeign]))
-                                              ,"(",dbQuoteIdentifier(conn,foreignRef[okForeign]),")")
-  }
-  additionalConstraints<-""
-  if(length(listConstraint)){
-    additionalConstraints=paste(",",listConstraint,collapse=", ")
-  }
-  paste0("CREATE TABLE ",dbQuoteIdentifier(conn,Id(schema=schema,table=tabName))," (",
-         paste0(
-         dbQuoteIdentifier(conn,fields), " " , types, " ",
-         ifelse(okForeign,foreignExpression,""),
-         ifelse(pk," PRIMARY KEY",""),
-         collapse=","),additionalConstraints,
-         ")")
-}
-
-
-
-###################
-# meta_i2d<-dbConnect(Postgres(),dbname="meta_i2d")
-# conn<-meta_i2d
-# schema<-"geonetwork"
-# db<-conn
-# extractedTables<-tabs_gn
-# sqlite_file<-sqlite_gn
-# overwrite=T
-# saveBAK=NULL
-# createFKindices=T
-########################
-sqlizeNames<-function(x,maxBytes=55)
-{
-  s1 <- gsub("^[-_.0-9]*","",gsub("\\_?([A-Z]{1,3})","_\\L\\1",gsub("^([A-Z]+)","\\L\\1",x,perl=T),perl=T))
-  s2 <- gsub("\\.","",s1,perl=T)
-  s3 <- strsplit(s2,'_')
-  ctBytes<-lapply(lapply(s3,nchar,type='bytes'),function(x)cumsum(x[length(x):1]+1)[length(x):1])
-  return(mapply(function(x,y)paste(x[y],collapse="_"),s3,lapply(ctBytes,function(x,m)x<m,m=maxBytes)))
-}
-
-sqlize_extractedTables <- function(extractedTables)
-{
-  newTabNames<-sqlizeNames(extractedTables$info$tab$tabname)
-  nr<-numRep(newTabNames)
-  newTabNames[newTabNames %in% newTabNames[duplicated(newTabNames)]]<-paste(newTabNames,nr,sep="_")[newTabNames %in% newTabNames[duplicated(newTabNames)]]
-  tabnames<-data.frame(old=extractedTables$info$tab$tabname,new=newTabNames)
-  names(extractedTables$data)<-extractedTables$info$tab$tabname<-newTabNames
-
-  m<-match(extractedTables$info$var$tabname,tabnames$old)
-  extractedTables$info$var$tabname<-tabnames$new[m]
-  m<-match(extractedTables$info$tab$foreigntable,tabnames$old)
-  extractedTables$info$tab$foreigntable<-tabnames$new[m]
-  extractedTables$info$tab$foreignref[!is.na(extractedTables$info$tab$foreigntable)]<-paste("cd",extractedTables$info$tab$foreigntable[!is.na(extractedTables$info$tab$foreigntable)],sep="_")
-  extractedTables$info$tab$primarykey<-paste("cd",extractedTables$info$tab$tabname,sep="_")
-
-  TABS<-extractedTables$info$tab$tabname
-  for(i in 1:length(TABS))
-  {
-    tab<-TABS[i]
-    newVarNames<-sqlizeNames(extractedTables$info$var$varname[extractedTables$info$var$tabname==tab])
-    nr<-numRep(newVarNames)
-    newVarNames[newVarNames %in% newVarNames[duplicated(newVarNames)]]<-paste(newVarNames,nr,sep="_")[newVarNames %in% newVarNames[duplicated(newVarNames)]]
-    varnames<-data.frame(old=extractedTables$info$var$varname[extractedTables$info$var$tabname==tab],
-                         new=newVarNames)
-    m<-match(extractedTables$info$var$varname[extractedTables$info$var$tabname==tab],varnames$old)
-    extractedTables$info$var$varname[extractedTables$info$var$tabname==tab]<-varnames$new[m]
-    m<-match(colnames(extractedTables$data[[tab]]),varnames$old)
-    if(sum(is.na(m))==1 & is.na(extractedTables$info$tab$foreigntable[extractedTables$info$tab$tabname==tab]))
-    {
-      colnames(extractedTables$data[[tab]])<-c(extractedTables$info$tab$primarykey[extractedTables$info$tab$tabname==tab],varnames$new[m[!is.na(m)]])
-    }else {
-      if(sum(is.na(m))==2 &!is.na(extractedTables$info$tab$foreigntable[extractedTables$info$tab$tabname==tab]))
-      {
-        colnames(extractedTables$data[[tab]])<-c(extractedTables$info$tab$primarykey[extractedTables$info$tab$tabname==tab],extractedTables$info$tab$foreignref[extractedTables$info$tab$tabname==tab], varnames$new[m[!is.na(m)]])
-      } else {
-      stop("Unexpected case in terms of variables and primary/foreign keys")
-      }
-    }
-  }
-  return(extractedTables)
-
-}
-
-
-exportPostgres<-function(extractedTables,conn,schema=NULL,overwrite=T,createFKindices=T)
-{
-  dbBegin(conn)
-  #Does the schema exist
-  schemaExists <- schema %in% dbGetQuery(conn,"SELECT schema_name FROM information_schema.schemata")$schema_name
-  if(schemaExists)
-  {
-    if(overwrite)
-    {
-      dbExecute(conn,paste0("DROP SCHEMA ", schema, " CASCADE"))
-    }else{
-      stop("The schema ",schema, "already exists, and the parameter overwrite is set to FALSE")
-    }
-  }
-  dbExecute(conn,paste0("CREATE SCHEMA ",schema))
-  # Create info Tables
-  ## tabInfo
-  stat<-createTableFK_statement(conn,tabName = "tabinfo",
-                                fields=colnames(extractedTables$info$tab),
-                                types=dbDataType(conn,extractedTables$info$tab),
-                                pk=(colnames(extractedTables$info$tab)=="tabname"),
-                                foreignTable=ifelse(colnames(extractedTables$info$tab)=="foreigntable","tabinfo",NA),
-                                foreignRef=ifelse(colnames(extractedTables$info$tab)=="foreigntable","tabname",NA),
-                                schema=schema
-  )
-  dbExecute(conn,stat)
-  ## varinfo
-  stat<-createTableFK_statement(conn,tabName="varinfo",
-                                fields=colnames(extractedTables$info$var),
-                                types=dbDataType(conn,extractedTables$info$var),
-                                pk=rep(FALSE,ncol(extractedTables$info$var)),
-                                foreignTable=ifelse(colnames(extractedTables$info$var)=="tabname","tabinfo",NA),
-                                foreignRef=ifelse(colnames(extractedTables$info$var)=="tabname","tabname",NA),
-                                listConstraint=list("PRIMARY KEY (tabname, varname)"),
-                                schema=schema
-  )
-  dbExecute(conn,stat)
-  # Add info
-  dbAppendTable(conn,Id(schema=schema,table="tabinfo"),extractedTables$info$tab)
-  dbAppendTable(conn,Id(schema=schema,table="varinfo"),extractedTables$info$var)
-  # Create metadata tables
-  for(i in 1:nrow(extractedTables$info$tab))
-  {
-    tab<-extractedTables$info$tab$tabname[i]
-    vars<-extractedTables$info$var$varname[extractedTables$info$var$tabname==tab]
-    pkey<-extractedTables$info$tab$primarykey[i]
-    ft<-extractedTables$info$tab$foreigntable[i]
-    fkey<-extractedTables$info$tab$foreignref[i]
-    fields<-c(pkey,na.omit(fkey),vars)
-    stopifnot(fields==colnames(extractedTables$data[[tab]]))
-    stat<-createTableFK_statement(conn,
-                                  tabName=tab,
-                                  fields=fields,
-                                  types=dbDataType(conn,extractedTables$data[[tab]]),
-                                  pk=(fields==pkey),
-                                  foreignTable=ifelse(fields==fkey,ft,NA),
-                                  foreignRef=ifelse(fields==fkey,fkey,NA),
-                                  schema=schema
-    )
-    dbExecute(conn,stat)
-    dbAppendTable(conn,Id(schema=schema,table=tab),value=extractedTables$data[[tab]])
-    if(createFKindices&sum(fields==fkey,na.rm = T)>0){
-      dbExecute(conn,paste0("CREATE INDEX fk_",tab,"_",ft,"_idx ON ",dbQuoteIdentifier(conn,Id(schema=schema,table=tab)),"(",na.omit(fields[fields==fkey]),")",collapse=" ; "))}
-  }
-  return(dbCommit(conn))
-}
-
-exportSQLite<-function(extractedTables,sqlite_file,overwrite=T,saveBAK=NULL,createFKindices=T){
-  fExist<-file.exists(sqlite_file)
-  if(fExist){
-    if(overwrite){
-      if(!is.null(saveBAK)){
-        file.rename(sqlite_file,saveBAK)
-      }else{file.remove(sqlite_file)}
-    }else{stop("SQLite file exists, use overwrite if you want to remove it")}
-  }
-  db<-dbConnect(SQLite(),sqlite_file)
-  # Create info Tables
-  ## tabInfo
-  stat<-createTableFK_statement(db,tabName = "tabinfo",
-                          fields=colnames(extractedTables$info$tab),
-                          types=dbDataType(db,extractedTables$info$tab),
-                          pk=(colnames(extractedTables$info$tab)=="tabname"),
-                          foreignTable=ifelse(colnames(extractedTables$info$tab)=="foreigntable","tabinfo",NA),
-                          foreignRef=ifelse(colnames(extractedTables$info$tab)=="foreigntable","tabname",NA)
-  )
-  dbExecute(db,stat)
-  ## varinfo
-  stat<-createTableFK_statement(db,tabName="varInfo",
-                          fields=colnames(extractedTables$info$var),
-                          types=dbDataType(db,extractedTables$info$var),
-                          pk=rep(FALSE,ncol(extractedTables$info$var)),
-                          foreignTable=ifelse(colnames(extractedTables$info$var)=="tabname","tabinfo",NA),
-                          foreignRef=ifelse(colnames(extractedTables$info$var)=="tabname","tabname",NA),
-                          listConstraint=list("PRIMARY KEY (tabname, varname)")
-  )
-  dbExecute(db,stat)
-  # Add info
-  dbAppendTable(db,"tabinfo",extractedTables$info$tab)
-  dbAppendTable(db,"varinfo",extractedTables$info$var)
-  # Create metadata tables
-  for(i in 1:nrow(extractedTables$info$tab))
-  {
-    tab<-extractedTables$info$tab$tabname[i]
-    vars<-extractedTables$info$var$varname[extractedTables$info$var$tabname==tab]
-    pkey<-extractedTables$info$tab$primarykey[i]
-    ft<-extractedTables$info$tab$foreigntable[i]
-    fkey<-extractedTables$info$tab$foreignref[i]
-    fields<-c(pkey,na.omit(fkey),vars)
-    stopifnot(fields==colnames(extractedTables$data[[tab]]))
-    stat<-createTableFK_statement(db,
-                                  tabName=tab,
-                                  fields=fields,
-                                  types=dbDataType(db,extractedTables$data[[tab]]),
-                                  pk=(fields==pkey),
-                                  foreignTable=ifelse(fields==fkey,ft,NA),
-                                  foreignRef=ifelse(fields==fkey,fkey,NA)
-                                  )
-    dbExecute(db,stat)
-    dbAppendTable(db,tab,extractedTables$data[[tab]])
-    if(createFKindices&sum(fields==fkey,na.rm = T)>0){
-      dbExecute(db,paste0("CREATE INDEX fk_",tab,"_",ft,"_idx ON ",tab,"(",na.omit(fields[fields==fkey]),")",collapse=";"))}
-  }
-  return(db)
-}
-
-require(openxlsx)
-save_in_excel<-function(file,lVar)
-{
-  if(!is.list(lVar)){
-    listVar<-mget(lVar,envir = .GlobalEnv)
-  }else{listVar<-lVar}
-  pbSizeName<-nchar(names(listVar))>31
-  if(any(pbSizeName)){
-    names(listVar)[pbSizeName]<-paste(substr(names(listVar)[pbSizeName],1,12),substr(names(listVar)[pbSizeName],nchar(names(listVar)[pbSizeName])-13,nchar(names(listVar)[pbSizeName])),sep="_..._")
-  }
-  dupesNames<-duplicated(names(listVar))
-  wb <- createWorkbook()
-  for(i in 1:length(listVar))
-  {
-    sn<- names(listVar)[i]
-    addWorksheet(wb, sheetName = sn)
-    hasRownames <- !all(grepl("^[0-9]*$",rownames(listVar[[i]])))
-    writeDataTable(wb, sheet =sn, listVar[[i]],rowNames = hasRownames)
-    nCols<-ifelse(hasRownames,ncol(listVar[[i]]), ncol(listVar[[i]]))
-    setColWidths(wb, sheet =sn,cols = 1:nCols, widths = 'auto')
-  }
-  saveWorkbook(wb, file, overwrite = TRUE)
-}
-
-
-exportXL<-function(extractedTables,file,exportInfoTables=T)
-{
-  if(exportInfoTables){
-  listExport<-c(extractedTables$info,extractedTables$data)
-  }else{
-    listExport<-extractedTables$info
-  }
-  save_in_excel(file,listExport)
-}
-
-
-
