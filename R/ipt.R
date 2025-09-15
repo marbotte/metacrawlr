@@ -23,20 +23,25 @@ hello <- function() {
 #' @param dataDir Datadir must be the directory where all of the dataset are found (that is, the next level in the directory hierarchy must be the directories with the names of datasets)
 #' @param encoding encoding of the files in the datadir (if null this will be guessed for each file with stringi::stru_enc_detect)
 #' @param language lenguaje of the files (when the encoding is associated with a languaje), if encoding is null, this will be guessed with stringi::stri_enc_detect
+#' @param verbose boolean, whether to send messages during execution
 #'
 #' @returns file table (data.frame) with filename (name), encoding, language, extensions, name/code of the dataset (dataFolder), full_name (name of the file with the complete path)
 #' @export
 #'
 #'
 
-ipt_listFiles <- function(dataDir,encoding=NULL,language=NULL)
+ipt_listFiles <- function(dataDir,encoding=NULL,language=NULL, verbose=T)
 {
   allFiles<-dir(dataDir, recursive = T, all.files = T, full.names = T)
   if(is.null(encoding))
   {
+    if(verbose)
+    {message("Guessing encoding of the files\n...")}
     encodings<-Reduce(rbind,lapply(stringi::stri_enc_detect(allFiles),function(x)x[1,,drop=F]))
     encoding<-encodings$Encoding
     language<-encodings$Language
+    if(verbose)
+    {message("DONE\n\n")}
   }
   basenames<-basename(allFiles)
   dirnames<-dirname(allFiles)

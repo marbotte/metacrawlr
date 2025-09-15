@@ -4,7 +4,7 @@
 \alias{ipt_listFiles}
 \title{Listing files from a datadir of an IPT instance}
 \usage{
-ipt_listFiles(dataDir, encoding = NULL, language = NULL)
+ipt_listFiles(dataDir, encoding = NULL, language = NULL, verbose = T)
 }
 \arguments{
 \item{dataDir}{Datadir must be the directory where all of the dataset are found (that is, the next level in the directory hierarchy must be the directories with the names of datasets)}
@@ -12,6 +12,8 @@ ipt_listFiles(dataDir, encoding = NULL, language = NULL)
 \item{encoding}{encoding of the files in the datadir (if null this will be guessed for each file with stringi::stru_enc_detect)}
 
 \item{language}{lenguaje of the files (when the encoding is associated with a languaje), if encoding is null, this will be guessed with stringi::stri_enc_detect}
+
+\item{verbose}{boolean, whether to send messages during execution}
 }
 \value{
 file table (data.frame) with filename (name), encoding, language, extensions, name/code of the dataset (dataFolder), full_name (name of the file with the complete path)

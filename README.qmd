@@ -26,3 +26,15 @@ Here, as an example, I downloaded the datadir of an IPT instance on my computer:
 DATADIR<-"/home/marius_gt/Travail/Data/IPTs/permisos-3.1.5/resources/"
 ```
 
+First we list the files and their encodings/languages (this takes a lot of time, if you are confident in knowing the encodings, I suggest using the encoding argument instead).
+
+```{r}
+filesPermi<-ipt_listFiles(DATADIR)
+knitr::kable(head(filesPermi))
+```
+
+```{r}
+extractedXml<-ipt_extractXml(filesPermi,modeExtract = "both")
+```
+
+
