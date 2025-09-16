@@ -1,4 +1,15 @@
 
+#' transform a xml document list to a nested list
+#'
+#' @param xmlList list of xml documents
+#'
+#' @returns nested List copying the structure of the xml documents
+#' @export
+#'
+metaListFromXml<-function(xmlList)
+{
+  lapply(xmlList,function(x)XML::xmlToList(XML::xmlParse(x)))
+}
 
 #' Extract indexes of an xml extraction from bash functions
 #'

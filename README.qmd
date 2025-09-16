@@ -33,8 +33,27 @@ filesPermi<-ipt_listFiles(DATADIR)
 knitr::kable(head(filesPermi))
 ```
 
+```{r , warning=F}
+extractedXml<-ipt_extractXml(filesPermi, modeExtract ="both" )[1:10]
+```
+
+
 ```{r}
-extractedXml<-ipt_extractXml(filesPermi,modeExtract = "both")
+metaList_permi<-metaListFromXml(extractedXml)
+```
+
+```{r}
+structPermi<-extractStructureListDocuments(metaList_permi)
+gnv_permi<-groupsAndVariables(structPermi)
+tabs_permi<-extractTables(metaList_permi,structPermi,gpsAndVar = gnv_permi)
+```
+
+
+```{r}
+xlFile_permi<-"../data_metadatos_catalogos/exportPermi.xlsx"
+tabs_permi<-sqlize_extractedTables(tabs_permi)
+exportXL(tabs_permi,file=xlFile_permi)
+
 ```
 
 

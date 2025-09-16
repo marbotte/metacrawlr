@@ -68,6 +68,8 @@ ipt_extractXml<-function(iptFileTable, modeExtract=c("EML", "Structure", "both")
   filesToExtract<-c(if(modeExtract %in% c("EML","both")){"eml.xml"} else {NULL},if(modeExtract %in% c("Structure","both")){"resource.xml"} else {NULL})
   iptFileTable<-iptFileTable[iptFileTable$name %in% filesToExtract,]
   extractedXml<-lapply(by(iptFileTable,iptFileTable$dataFolder,FUN = function(x)Reduce(c,mapply(readLines,x$full_name,encoding=x$encoding))),paste,collapse="\n")
+  if(modeExtract=="both")
+  {extractedXml<-lapply(extractedXml,FUN =function(x){ paste0("<document>\n",x,"</document>",collapse="\n")})}
   return(extractedXml)
 }
 
