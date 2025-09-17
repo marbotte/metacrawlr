@@ -34,7 +34,7 @@ knitr::kable(head(filesPermi))
 ```
 
 ```{r , warning=F}
-extractedXml<-ipt_extractXml(filesPermi, modeExtract ="both" )[1:10]
+extractedXml<-ipt_extractXml(filesPermi, modeExtract ="both" )
 ```
 
 
@@ -51,9 +51,10 @@ tabs_permi<-extractTables(metaList_permi,structPermi,gpsAndVar = gnv_permi)
 
 ```{r}
 xlFile_permi<-"../data_metadatos_catalogos/exportPermi.xlsx"
+sqlite_permi<-"../data_metadatos_catalogos/permi.sqlite"
 tabs_permi<-sqlize_extractedTables(tabs_permi)
 exportXL(tabs_permi,file=xlFile_permi)
-
+dbpermi<-exportSQLite(tabs_permi,sqlite_file = sqlite_permi)
 ```
 
 
