@@ -37,7 +37,6 @@ createTableFK_statement<-function(conn,tabName,fields,types,pk,foreignTable,fore
 }
 
 
-
 ###################
 # meta_i2d<-dbConnect(Postgres(),dbname="meta_i2d")
 # conn<-meta_i2d
@@ -128,6 +127,11 @@ sqlize_extractedTables <- function(extractedTables)
 #' @returns result of the dbCommit function at the end of the transaction
 #' @export
 #'
+extractedTables<-tabs_ceiba
+conn=mI2D
+schema<-schemaCeiba
+overwrite=T
+createFKindices=T
 exportPostgres<-function(extractedTables,conn,schema=NULL,overwrite=T,createFKindices=T)
 {
   RPostgres::dbBegin(conn)
