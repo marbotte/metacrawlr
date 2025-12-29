@@ -135,3 +135,53 @@ exportXL(tabs_permi,file=xlFile_permi)
 ``` r
 dbpermi<-exportSQLite(tabs_permi,sqlite_file = sqlite_permi)
 ```
+
+## Ejemplo Ceiba
+
+``` r
+DATADIR <- "/home/marius_gt/Travail/Data/IPTs/Ceiba/resources/"
+```
+
+``` r
+filesCeiba<-ipt_listFiles(DATADIR)
+```
+
+    Guessing encoding of the files
+    ...
+
+    DONE
+
+``` r
+knitr::kable(head(filesCeiba))
+```
+
+| name | encoding | language | extension | dataFolder | full_name |
+|:---|:---|:---|:---|:---|:---|
+| .recordspublished-1 | ISO-8859-1 | en | recordspublished-1 | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/.recordspublished-1 |
+| a-polyneuron_2019-1.0.rtf | ISO-8859-1 | pt | rtf | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/a-polyneuron_2019-1.0.rtf |
+| a-polyneuron_2019.rtf | ISO-8859-1 | pt | rtf | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/a-polyneuron_2019.rtf |
+| dwca.zip | ISO-8859-1 | pt | zip | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/dwca.zip |
+| eml-1.0.xml | ISO-8859-1 | pt | xml | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/eml-1.0.xml |
+| eml.xml | ISO-8859-1 | pt | xml | a-polyneuron_2019 | /home/marius_gt/Travail/Data/IPTs/Ceiba/resources//a-polyneuron_2019/eml.xml |
+
+``` r
+extractedXml<-ipt_extractXml(filesCeiba, modeExtract ="both" )
+```
+
+``` r
+metaList_ceiba<-metaListFromXml(extractedXml)
+```
+
+``` r
+structCeiba<-extractStructureListDocuments(metaList_ceiba)
+gnv_ceiba<-groupsAndVariables(structCeiba)
+tabs_ceiba<-extractTables(metaList_ceiba,structCeiba,gpsAndVar = gnv_ceiba)
+tabs_ceiba_sql<-sqlize_extractedTables(tabs_ceiba)
+```
+
+``` r
+library(RPostgres)
+mI2D<-dbConnect(drv=Postgres(),dbname="meta_i2d")
+schemaCeiba<-"ceiba"
+exportPostgres(tabs_ceiba_sql,mI2D,schema=schemaCeiba,overwrite = T,createFKindices = T)
+```
